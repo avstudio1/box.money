@@ -1,0 +1,26 @@
+# Node: 11
+# Path: /infra/caddy/Caddyfile
+# Purpose: Reverse proxy for local dev, routing HTTP and gRPC traffic to the correct services.
+
+# This defines the main entrypoint for all traffic into the Goldstream system.
+# It listens on the port specified by the CADDY_HTTP_PORT environment variable.
+:{$CADDY_HTTP_PORT} {
+	# Enable detailed logging for development.
+	log
+
+	# Route gRPC-Web traffic to the backend gRPC server on port 50051.
+	# The `handle_path` directive strips the matched prefix before proxying.
+	handle_path /rpc/* {
+		reverse_proxy h2c://api:{$API_PORT_GRPC}
+	}
+
+	# Route standard REST API traffic to the backend GoFiber server on port 8080.
+	handle_path /api/* {
+		reverse_proxy api:{$API_PORT_HTTP}
+	}
+
+	# Serve the frontend console as the default for all other requests.
+	handle {
+		reverse_proxy console:5173
+	}
+}

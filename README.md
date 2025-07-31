@@ -90,6 +90,36 @@ If you do not have `make` installed, you can run the underlying `docker` command
 
 ---
 
+## File Header Protocol
+
+To maintain system clarity and blueprint adherence, every file created within this project must begin with a standardized header comment. This header acts as a "dog tag" for the file, immediately identifying its purpose and origin within the system architecture.
+
+The format is as follows, using the appropriate comment syntax for the file's language (e.g., `//` for Go/TS, `#` for shell/yaml, `<!-- -->` for markdown):
+
+```
+// Node: [Node # from the blueprint table]
+// Path: [Full file path from project root, e.g., /api/main.go]
+// Purpose: [A brief, one-sentence description of the file's role and responsibility.]
+```
+
+**Example (`api/main.go`):**
+```go
+// Node: 1
+// Path: /api/main.go
+// Purpose: Entrypoint for the backend service, responsible for initializing servers and dependencies.
+```
+
+**Example (`Makefile`):**
+```makefile
+# Node: 14
+# Path: /Makefile
+# Purpose: Defines common development and build tasks for automation.
+```
+
+This protocol is non-negotiable. It ensures that any developer or agent interacting with a file can instantly understand its context without cross-referencing other documents. It is a core tenet of "He who builds faithfully at the node, builds the system."
+
+---
+
 ## System Data Flow (Bid Placement)
 
 To understand how the nodes interact, trace the path of a single user bid through the system. This flow demonstrates the recursive feedback loop from user action to system response.

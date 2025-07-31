@@ -1,0 +1,64 @@
+# Node: 14
+# Path: /Makefile
+# Purpose: Defines common development and build tasks for automation.
+# Defines common development and build tasks.
+
+.PHONY: all proto build dev up down logs test clean help
+
+# Default command: Show help
+all: help
+
+# ==============================================================================
+# Code Generation
+# Node 14: `proto` target
+# Generates Go and TypeScript code from the shared Protobuf schema.
+# ==============================================================================
+proto:
+	@echo "==>  regenerating protobuf code..."
+	@mkdir -p api/gen/auction console/src/gen
+	@docker run --rm \
+  -v "$(CURDIR)":/work \
+  -v /usr/include/google/protobuf:/usr/include/google/protobuf \
+  --entrypoint protoc -w /work namely/protoc-all:1.51_2 \
+  -I shared/schema \
+  -I /usr/include \
+  -I /usr/include/google/protobuf \
+  --go_out=. --go-grpc_out=. \
+  --ts_out=service=grpc-web:console/src/gen \
+  shared/schema/auction.proto
+	@echo "==> protobuf code generated"
+
+# ==============================================================================
+# Development Environment (Docker Compose)
+# Node 14: `dev`, `up`, `down`, `logs` targets
+# ==============================================================================
+dev: up
+
+up:
+	@echo "==> starting development environment..."
+	@docker-compose -f infra/docker-compose.yml up --build -d
+	@echo "==> environment started. console available at http://localhost:5173"
+
+down:
+	@echo "==> stopping development environment..."
+	@docker-compose -f infra/docker-compose.yml down
+
+logs:
+	@echo "==> tailing logs..."
+	@docker-compose -f infra/docker-compose.yml logs -f
+
+clean:
+	@echo "==> cleaning generated files..."
+	@rm -rf api/gen console/src/gen
+	@echo "==> clean complete"
+
+help:
+	@echo "Goldstream Project Makefile"
+	@echo "---------------------------"
+	@echo "Available commands:"
+	@echo "  make proto    - Generate Go and TS code from .proto files."
+	@echo "  make dev      - Start the full development environment (alias for 'up')."
+	@echo "  make up       - Build and start services with Docker Compose."
+	@echo "  make down     - Stop all running services."
+	@echo "  make logs     - Tail the logs from all running services."
+	@echo "  make clean    - Remove all generated code." 

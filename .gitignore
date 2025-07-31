@@ -1,0 +1,50 @@
+# .gitignore
+
+## --- Secrets & Configuration ---
+
+# Per Node 15, the .env file contains secrets and local configuration.
+# It must never be committed. Only the template is tracked.
+.env
+.env.*
+!.env.example
+
+meta/
+
+
+## --- Go Backend (api/) ---
+
+# Compiled application binaries
+/api/app
+
+
+## --- Node.js Frontend (console/) ---
+
+# Dependencies
+/console/node_modules/
+
+# Build output directory
+/console/dist/
+
+# Caches
+/console/.vite/
+/console/.npm/
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+
+## --- Generated Code ---
+
+# Protobuf generated files. These are created by the `make proto` command
+# and should not be tracked directly.
+/api/gen/
+/console/src/gen/
+
+
+## --- OS & IDE specific ---
+.DS_Store
+.idea/
+.vscode/

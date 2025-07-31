@@ -1,0 +1,54 @@
+// Path: shared/schema/auction.proto
+
+syntax = "proto3";
+
+package auction;
+
+option go_package = "github.com/box-money/goldstream/api/gen/auction";
+
+import "google/protobuf/timestamp.proto";
+
+// The core auction service definition.
+service AuctionService {
+  // BidStream is a bidirectional stream for placing bids and receiving server events.
+  rpc BidStream(stream BidRequest) returns (stream ServerStreamMessage);
+}
+
+// Sent by the client to place a bid.
+// The user_id is derived from the authenticated gRPC context on the server side.
+message BidRequest {
+  string auction_id = 1;
+  int64 amount_cents = 2; // Bid amount in the smallest currency unit.
+}
+
+// A wrapper for all server-to-client messages, aligning with gRPC best practices.
+message ServerStreamMessage {
+  oneof event {
+    BidUpdate bid_update = 1;
+    ResultUpdate result_update = 2;
+    ErrorUpdate error_update = 3;
+  }
+}
+
+// Pushed when a new valid bid is accepted. Fulfills the "BidUpdate" requirement.
+message BidUpdate {
+  string new_highest_bidder_id = 1;
+  int64 new_price_cents = 2;
+  google.protobuf.Timestamp ends_at = 3; // The new end time, potentially extended by anti-snipe.
+}
+
+// Pushed once when the auction concludes. Fulfills the "ResultUpdate" requirement.
+message ResultUpdate {
+  enum Status {
+    SOLD = 0;
+    NOT_SOLD = 1; // e.g., Reserve not met or no bids.
+  }
+  Status status = 1;
+  string final_winner_id = 2;
+  int64 final_price_cents = 3;
+}
+
+// Pushed to a specific client if their request is invalid.
+message ErrorUpdate {
+  string message = 1; // e.g., "Bid is too low", "Auction has already ended."
+}

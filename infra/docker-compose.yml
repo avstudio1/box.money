@@ -42,6 +42,9 @@ services:
       - /app/node_modules # Prevent local node_modules from overwriting container's
     env_file:
       - ../.env
+    # Ensure the dev server runs persistently and is accessible within the Docker network.
+    # This command assumes a "dev" script in your console's package.json.
+    command: npm run dev
 
   # Node 16: PostgreSQL database.
   postgres:

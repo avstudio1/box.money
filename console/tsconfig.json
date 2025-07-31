@@ -25,5 +25,8 @@
       "@/*": ["./src/*"]
     }
   },
+  "typeAcquisition": {
+    "enable": false,
+  },
   "include": ["src"]
 }

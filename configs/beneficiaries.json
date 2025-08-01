@@ -1,0 +1,7 @@
+[
+  {
+    "name": "System Reserve",
+    "endpoint": "internal",
+    "allocation": 100
+  }
+]

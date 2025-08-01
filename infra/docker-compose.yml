@@ -20,8 +20,6 @@ services:
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
-    ports:
-      - "${CADDY_HTTP_PORT}:${CADDY_HTTP_PORT}"
     volumes:
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile
       - caddy_data:/data
@@ -47,6 +45,9 @@ services:
       context: ../api
       dockerfile: Dockerfile
     restart: unless-stopped
+    ports:
+      - "${API_PORT_HTTP}:${API_PORT_HTTP}"
+      - "${API_PORT_GRPC}:${API_PORT_GRPC}"
     volumes:
       - ../api:/app
     env_file:
@@ -76,6 +77,8 @@ services:
       context: ../console
       dockerfile: Dockerfile
     restart: unless-stopped
+    ports:
+      - "5173:5173"
     volumes:
       - ../console:/app
       - /app/node_modules # Prevent local node_modules from overwriting container's

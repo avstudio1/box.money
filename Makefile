@@ -23,7 +23,7 @@ proto:
   -I shared/schema \
   -I /usr/include \
   -I /usr/include/google/protobuf \
-  --go_out=. --go-grpc_out=. \
+  --go_out=api/gen/auction --go-grpc_out=api/gen/auction --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative \
   --ts_out=service=grpc-web:console/src/gen \
   shared/schema/auction.proto
 	@echo "==> protobuf code generated"

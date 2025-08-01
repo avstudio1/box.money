@@ -102,14 +102,14 @@ The format is as follows, using the appropriate comment syntax for the file's la
 // Purpose: [A brief, one-sentence description of the file's role and responsibility.]
 ```
 
-**Example (`api/main.go`):**
+**Example (`api/main.go`)**:
 ```go
 // Node: 1
 // Path: /api/main.go
 // Purpose: Entrypoint for the backend service, responsible for initializing servers and dependencies.
 ```
 
-**Example (`Makefile`):**
+**Example (`Makefile`)**:
 ```makefile
 # Node: 14
 # Path: /Makefile
@@ -148,12 +148,25 @@ All financial transactions are recorded and auditable via the database schema (*
 
 ---
 
+## The Counterbalance Mandate
+
+> "The system that gives back to itself, sustains itself."
+> — System Proverb
+
+The Goldstream system operates on a dual mandate. The **Monetization Engine** is designed to generate profit. The **Counterbalance** is the system's internal reinvestment mechanism, bound by a single, inviolable rule:
+
+**Ten percent (10%) of all gross proceeds shall be automatically and irrevocably reinvested.**
+
+This is not a feature for marketing, but a foundational law of the system's existence. The `Monetization Engine` operates without direct knowledge of the `Reinvestment Engine` (**Counterbalance**). The `auction` service (**Node 2**) emits a generic `settlement` event, which the `steward` service (**Node 19**) consumes to calculate and record the reinvestment, ensuring the two functions remain separate.
+
+---
+
 ## Nodes of Learning (Node Blueprint Table)
 
 | Node # | Tree Path                             | Domain   | Prompt Summary                                          |
 | ------ | ------------------------------------- | -------- | ------------------------------------------------------- |
-| 1      | api/main.go                           | Backend  | Entrypoint: Fiber, gRPC, Redis, NATS, graceful shutdown |
-| 2      | api/services/auction.go               | Backend  | Core auction logic: validation, timer, anti-snipe       |
+| 1      | api/main.go                           | Backend  | Entrypoint: Init all services, including steward/beneficiary|
+| 2      | api/services/auction.go               | Backend  | Core auction logic: validation, timer, emit settlement  |
 | 3      | api/grpc/auction_server.go            | Backend  | gRPC stream: bid submit + push updates                  |
 | 4      | console/src/pages/auction/[id].tsx    | Frontend | Dynamic auction page: Zustand, UI, stream               |
 | 5      | console/src/hooks/useAuctionStream.ts | Frontend | Bid/Result streaming over gRPC-Web                      |
@@ -167,9 +180,12 @@ All financial transactions are recorded and auditable via the database schema (*
 | 13     | README.md                             | Root     | System description, flow, monetization engine           |
 | 14     | Makefile                              | Root     | Dev scripts: proto, build, run, test                    |
 | 15     | .env                                  | Root     | Unified secrets/config for all services                 |
-| 16     | db/migrations/001_init_schema.sql     | Infra    | Initial DB schema: users, auctions, bids tables         |
-| 17     | api/storage/querier.go                | Backend  | DB querier interface for auction/user data              |
+| 16     | db/migrations/001_init_schema.sql     | Infra    | DB schema: users, auctions, bids, reinvestments, beneficiaries |
+| 17     | api/storage/querier.go                | Backend  | DB querier interface for all tables, including reinvestments   |
 | 18     | api/middleware/auth.go                | Backend  | JWT authentication middleware for protected routes      |
+| 19     | api/services/steward.go               | Backend  | Reinvestment calculator: listens for settlements, records reinvestment|
+| 20     | api/services/beneficiary.go           | Backend  | Manages designated system beneficiaries and allocations  |
+| 21     | configs/beneficiaries.json            | Root     | Configuration for beneficiary endpoints and allocations     |
 
 ---
 
@@ -216,7 +232,6 @@ All financial transactions are recorded and auditable via the database schema (*
 
 > *“He who builds faithfully at the node, builds the system.”*  
 > *“Perfectly imperfect, imperfectly perfect.”*  
-> *“The system remembers. The system responds.”*
 > *“Do not let your left hand know what your right hand is doing.”* — Matthew 6:3
 
 ---
@@ -227,7 +242,7 @@ All financial transactions are recorded and auditable via the database schema (*
 ## Node 1 — api/main.go
 
 **Prompt**:  
-Create the main application entrypoint. Initialize and configure a GoFiber web server. Set up listeners for both HTTP and gRPC traffic. Integrate connections for Redis and NATS. Implement a graceful shutdown mechanism to handle SIGINT and SIGTERM signals, ensuring all connections are closed cleanly and in-flight requests are completed.
+Create the main application entrypoint. Initialize and configure a GoFiber web server, listeners for HTTP/gRPC, and connections for Redis/NATS. **Initialize and start the `steward` and `beneficiary` services as background tasks.** Implement a graceful shutdown mechanism to handle SIGINT/SIGTERM signals, ensuring all connections and services are closed cleanly.
 
 **Implements**:  
 - [x] Tree Path  
@@ -242,7 +257,7 @@ Create the main application entrypoint. Initialize and configure a GoFiber web s
 ## Node 2 — api/services/auction.go
 
 **Prompt**:  
-Implement the core auction service logic. This service should manage the lifecycle of an auction. Include functions for creating an auction, validating incoming bids (e.g., bid amount is higher than current price), managing the auction timer, and implementing an anti-sniping mechanism (e.g., extending the auction time if a bid is placed in the last few seconds).
+Implement the core auction service logic. This service should manage the auction lifecycle, including validation, timers, and anti-sniping. **Upon successful auction completion and fee collection, it must publish a `settlement` event to NATS** containing the gross transaction proceeds, so the `steward` service can process the reinvestment.
 
 **Implements**:  
 - [ ] Tree Path  
@@ -457,7 +472,7 @@ Create a .env.example file that serves as a template for the project's environme
 ## Node 16 — db/migrations/001_init_schema.sql
 
 **Prompt**:  
-Create the initial database migration script. Define the SQL schema for the core entities: `users`, `items`, `auctions`, and `bids`. Include appropriate columns, types, constraints, and indexes. Ensure `auctions` have a status field (e.g., pending, active, ended) and that `bids` are linked to both a user and an auction.
+Create the initial database migration script. Define the SQL schema for the core entities: `users`, `items`, `auctions`, and `bids`. **Also, create tables for `reinvestments` (to log every reinvestment) and `beneficiaries` (to store recipient information).** Include appropriate columns, types, constraints, and indexes.
 
 **Implements**:  
 - [ ] Tree Path  
@@ -472,7 +487,7 @@ Create the initial database migration script. Define the SQL schema for the core
 ## Node 17 — api/storage/querier.go
 
 **Prompt**:  
-Define the database querier interface. This interface will abstract all SQL operations needed by the application services. Create methods for creating users, finding auctions, inserting bids, and updating auction state. This file will serve as the contract for a tool like `sqlc` to generate a type-safe data access layer or for a manual implementation.
+Define the database querier interface. This interface will abstract all SQL operations. **Create methods for all tables, including creating/querying users, auctions, bids, reinvestments, and beneficiaries.** This file will serve as the contract for a tool like `sqlc` to generate a type-safe data access layer.
 
 **Implements**:  
 - [ ] Tree Path  
@@ -496,5 +511,50 @@ Implement a JWT-based authentication middleware for the GoFiber application. The
 - [ ] Second-order integration
 
 **Status**: _In Progress_
+
+---
+
+## Node 19 — api/services/steward.go
+
+**Prompt**:  
+Create the `steward` service. It must subscribe to the `settlement` topic on the NATS stream. Upon receiving a message, it will calculate 10% of the gross proceeds, use the `beneficiary` service to determine the recipient(s), and record the transaction in the `reinvestments` database table via the querier.
+
+**Implements**:  
+- [ ] Tree Path  
+- [ ] Blueprint consistency  
+- [ ] 3n structure  
+- [ ] Second-order integration
+
+**Status**: _To be implemented_
+
+---
+
+## Node 20 — api/services/beneficiary.go
+
+**Prompt**:  
+Create the `beneficiary` service. It will be responsible for managing the list of designated system beneficiaries. It should load beneficiary data from the `configs/beneficiaries.json` file and provide functions to the `steward` service for selecting a beneficiary based on predefined allocation rules.
+
+**Implements**:  
+- [ ] Tree Path  
+- [ ] Blueprint consistency  
+- [ ] 3n structure  
+- [ ] Second-order integration
+
+**Status**: _To be implemented_
+
+---
+
+## Node 21 — configs/beneficiaries.json
+
+**Prompt**:  
+Create a JSON configuration file to define the system beneficiaries that will receive reinvestments. Each entry should include a name, a payment endpoint URL, and an allocation percentage. The sum of all allocation percentages must equal 100.
+
+**Implements**:  
+- [ ] Tree Path  
+- [ ] Blueprint consistency  
+- [ ] 3n structure  
+- [ ] Second-order integration
+
+**Status**: _To be implemented_
 
 ---

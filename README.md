@@ -209,11 +209,11 @@ This is not a feature for marketing, but a foundational law of the system's exis
 
 ## Rules of Expansion
 
-- Always maintain **3n** node count (e.g., 3, 6, 9, 12, 15…)  
-- No node or file without tree alignment  
-- All code must trace back to a documented prompt  
+- Always maintain **3n** node count (e.g., 3, 6, 9, 12, 15…)
+- No node or file without tree alignment
+- All code must trace back to a documented prompt
 - Second-order documents (like this README or MERMAID.md) serve node implementation, not initiation. They *describe* the system that the nodes *build*.
-- First-order documents must remain immutable unless promoted through node update  
+- First-order documents must remain immutable unless promoted through node update
 - The system is recursive: documentation → prompt → implementation → runtime → analytics → re-documentation
 
 ---
@@ -350,12 +350,12 @@ Define the Protocol Buffers schema for the auction service. Create message types
 Generate TypeScript type definitions from the auction.proto schema. Set up a script (likely in the Makefile) to automate this generation process. In addition to the generated types, create any necessary helper interfaces or types that might be needed on the frontend for UI state or component props that are not directly covered by the protobuf schema.
 
 **Implements**:  
-- [x] Tree Path  
-- [x] Blueprint consistency  
-- [x] 3n structure  
-- [x] Second-order integration
+- [ ] Tree Path  
+- [ ] Blueprint consistency  
+- [ ] 3n structure  
+- [ ] Second-order integration
 
-**Status**: _Implemented_
+**Status**: _To be implemented_
 
 ---
 
@@ -365,12 +365,12 @@ Generate TypeScript type definitions from the auction.proto schema. Set up a scr
 Create shared currency formatting utilities. Implement a Go version (currency_format.go) and a TypeScript version (currency_format.ts) with identical logic. These functions should take a numeric value (e.g., an integer representing cents) and format it into a human-readable currency string (e.g., "$1,234.56"). Ensure the behavior is consistent across both backend and frontend.
 
 **Implements**:  
-- [x] Tree Path  
-- [x] Blueprint consistency  
-- [x] 3n structure  
-- [x] Second-order integration
+- [ ] Tree Path  
+- [ ] Blueprint consistency  
+- [ ] 3n structure  
+- [ ] Second-order integration
 
-**Status**: _Implemented_
+**Status**: _To be implemented_
 
 ---
 
@@ -410,12 +410,12 @@ Configure the Caddyfile to act as a reverse proxy for the local development envi
 Create a Kubernetes deployment manifest for the backend api service. The manifest should define a Deployment to manage the API pods and a Service to expose it within the cluster. Include configuration for environment variables, resource requests/limits, and readiness/liveness probes. This manifest should be designed to be compatible with a deployment target like Fly.io or any standard Kubernetes cluster.
 
 **Implements**:  
-- [x] Tree Path  
-- [x] Blueprint consistency  
-- [x] 3n structure  
-- [x] Second-order integration
+- [ ] Tree Path  
+- [ ] Blueprint consistency  
+- [ ] 3n structure  
+- [ ] Second-order integration
 
-**Status**: _Implemented_
+**Status**: _To be implemented_
 
 ---
 
@@ -475,12 +475,12 @@ Create a .env.example file that serves as a template for the project's environme
 Create the initial database migration script. Define the SQL schema for the core entities: `users`, `items`, `auctions`, and `bids`. **Also, create tables for `reinvestments` (to log every reinvestment) and `beneficiaries` (to store recipient information).** Include appropriate columns, types, constraints, and indexes.
 
 **Implements**:  
-- [x] Tree Path  
-- [x] Blueprint consistency  
-- [x] 3n structure  
-- [x] Second-order integration
+- [ ] Tree Path  
+- [ ] Blueprint consistency  
+- [ ] 3n structure  
+- [ ] Second-order integration
 
-**Status**: _Implemented_
+**Status**: _To be implemented_
 
 ---
 
@@ -490,12 +490,12 @@ Create the initial database migration script. Define the SQL schema for the core
 Define the database querier interface. This interface will abstract all SQL operations. **Create methods for all tables, including creating/querying users, auctions, bids, reinvestments, and beneficiaries.** This file will serve as the contract for a tool like `sqlc` to generate a type-safe data access layer.
 
 **Implements**:  
-- [x] Tree Path  
-- [x] Blueprint consistency  
-- [x] 3n structure  
-- [x] Second-order integration
+- [ ] Tree Path  
+- [ ] Blueprint consistency  
+- [ ] 3n structure  
+- [ ] Second-order integration
 
-**Status**: _Implemented_
+**Status**: _To be implemented_
 
 ---
 
@@ -505,12 +505,12 @@ Define the database querier interface. This interface will abstract all SQL oper
 Implement a JWT-based authentication middleware for the GoFiber application. The middleware should inspect the `Authorization` header, validate the token, and extract user claims. Upon successful validation, it should inject user information into the request context for use by downstream handlers and gRPC services.
 
 **Implements**:  
-- [x] Tree Path  
-- [x] Blueprint consistency  
-- [x] 3n structure  
-- [x] Second-order integration
+- [ ] Tree Path  
+- [ ] Blueprint consistency  
+- [ ] 3n structure  
+- [ ] Second-order integration
 
-**Status**: _Implemented_
+**Status**: _To be implemented_
 
 ---
 

@@ -52,3 +52,4 @@ pnpm-debug.log*
 ## --- Gemini specific ---
 .gemini.json
 GEMINI.md
+api/tmp/

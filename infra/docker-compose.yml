@@ -4,6 +4,19 @@
 
 services:
   # Node 11: Caddy acts as the reverse proxy and entrypoint.
+  # As per the README, Caddy handles routing for all incoming traffic. It listens
+  # on the port defined by CADDY_HTTP_PORT in the .env file.
+  #
+  # Configuration:
+  # - The local Caddyfile is mounted to configure routing rules. It directs:
+  #   - /rpc/* traffic to the gRPC server (api service).
+  #   - /api/* traffic to the REST server (api service).
+  #   - All other traffic to the frontend console service.
+  #
+  # Operation:
+  # - Provides a single entrypoint for the entire system during local development.
+  # - The `caddy_data` volume is used by Caddy to store state, such as automatically
+  #   provisioned local TLS certificates if configured.
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
@@ -17,6 +30,18 @@ services:
       - console
 
   # Node 1: The Go backend API and gRPC server.
+  # This service is the core of the Goldstream system, implementing the business
+  # logic for auctions, user management, and more. It exposes both a REST API
+  # (using GoFiber) and a gRPC API for real-time communication.
+  #
+  # Configuration:
+  # - Builds from the Dockerfile located in the `../api` directory.
+  # - All necessary environment variables (database connections, ports, etc.)
+  #   are loaded from the root `.env` file.
+  #
+  # Operation:
+  # - The `../api` directory is mounted as a volume, enabling live-reloading
+  #   of the Go application on code changes.
   api:
     build:
       context: ../api
@@ -32,6 +57,20 @@ services:
       - nats
 
   # The Vite/React frontend console.
+  # This service serves the user-facing web application. As described in the
+  # README, it's built with Vite and React, and it communicates with the
+  # backend via the Caddy proxy.
+  #
+  # Configuration:
+  # - Builds from the Dockerfile located in the `../console` directory.
+  # - Environment variables, such as VITE_API_BASE_URL, are loaded from the
+  #   root `.env` file.
+  #
+  # Operation:
+  # - The `../console` directory is mounted for live-reloading via the Vite dev server.
+  # - The `/app/node_modules` volume is a common Docker pattern to prevent the
+  #   local `node_modules` directory (if it exists) from overwriting the one
+  #   installed inside the container. This ensures dependency consistency.
   console:
     build:
       context: ../console
@@ -47,6 +86,18 @@ services:
     command: npm run dev
 
   # Node 16: PostgreSQL database.
+  # This service provides the primary persistent storage for the application.
+  # The initial schema is defined in the migration files under `db/migrations/`,
+  # as referenced by Node 16 in the README.
+  #
+  # Configuration:
+  # - Uses the official `postgres:15-alpine` image.
+  # - Database credentials and name are configured via environment variables
+  #   sourced from the root `.env` file.
+  #
+  # Operation:
+  # - The `postgres_data` named volume is used to persist the database data
+  #   across container restarts, ensuring that development data is not lost.
   postgres:
     image: postgres:15-alpine
     restart: unless-stopped
@@ -57,12 +108,29 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  # Redis in-memory data store.
+  # Used by the `api` service for caching, session management, or other tasks
+  # that benefit from a fast key-value store.
+  #
+  # Configuration:
+  # - Uses the official `redis:7-alpine` image.
+  # - The `api` service connects to it using the service name `redis`.
   redis:
     image: redis:7-alpine
 
+  # NATS messaging system.
+  # As per the README, this is used for real-time event streaming and inter-service
+  # communication, such as broadcasting auction updates from the `api` service.
+  #
+  # Configuration:
+  # - Uses the official `nats:2.9-alpine` image.
+  # - The `api` service connects to it using the service name `nats`.
   nats:
     image: nats:2.9-alpine
 
+# Named volumes are managed by Docker and provide persistent storage for stateful services.
 volumes:
+  # Persists PostgreSQL database data across container restarts.
   postgres_data:
+  # Persists Caddy's state, such as generated TLS certificates for local HTTPS.
   caddy_data:

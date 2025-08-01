@@ -3,7 +3,7 @@
 # Note: This file is part of Node 4's implementation.
 
 # Use the official Node.js image.
-FROM node:20.15.0-alpine
+FROM node:24.4.1-alpine
 
 # Update base packages to patch potential vulnerabilities.
 RUN apk upgrade --no-cache

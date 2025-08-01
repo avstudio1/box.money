@@ -3,7 +3,7 @@
 # Note: This version is optimized for local development with live-reloading using 'air'.
 
 # Use the official Go image.
-FROM golang:1.21-alpine
+FROM golang:1.24-alpine
 
 # Set the working directory inside the container.
 WORKDIR /app
